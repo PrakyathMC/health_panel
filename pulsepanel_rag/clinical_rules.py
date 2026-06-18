@@ -3,11 +3,14 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from .models import ClinicalLabel
+from .models import ClinicalLabel, VitalSigns
 
 
-def _number(vitals: Mapping[str, Any], key: str) -> float | None:
-    value = vitals.get(key)
+def _number(vitals: Mapping[str, Any] | VitalSigns, key: str) -> float | None:
+    if isinstance(vitals, VitalSigns):
+        value = getattr(vitals, key)
+    else:
+        value = vitals.get(key)
     if value is None:
         return None
     try:
@@ -16,7 +19,9 @@ def _number(vitals: Mapping[str, Any], key: str) -> float | None:
         return None
 
 
-def derive_clinical_labels(vitals: Mapping[str, Any]) -> list[ClinicalLabel]:
+def derive_clinical_labels(
+    vitals: Mapping[str, Any] | VitalSigns,
+) -> list[ClinicalLabel]:
     labels: list[ClinicalLabel] = []
 
     spo2 = _number(vitals, "spo2")
@@ -73,4 +78,3 @@ def derive_clinical_labels(vitals: Mapping[str, Any]) -> list[ClinicalLabel]:
         )
 
     return labels
-

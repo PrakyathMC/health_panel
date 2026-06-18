@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict
 
 from .mock_data import MOCK_KNOWLEDGE_BASE
 from .models import ClinicalRecord, Symptom
@@ -30,9 +29,8 @@ def main() -> None:
 
     retriever = HybridRetriever(MOCK_KNOWLEDGE_BASE)
     bundle = retriever.retrieve(record)
-    print(json.dumps(asdict(bundle), indent=2))
+    print(json.dumps(bundle.model_dump(mode="json"), indent=2))
 
 
 if __name__ == "__main__":
     main()
-

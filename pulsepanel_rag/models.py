@@ -1,38 +1,83 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import Any
 
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
-@dataclass(frozen=True)
-class Symptom:
+
+class ContractModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
+
+
+def _clean_required_text(value: str) -> str:
+    cleaned = value.strip()
+    if not cleaned:
+        raise ValueError("must not be empty")
+    return cleaned
+
+
+class Symptom(ContractModel):
     name: str
     severity: str | None = None
     duration: str | None = None
 
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: str) -> str:
+        return _clean_required_text(value)
 
-@dataclass(frozen=True)
-class ClinicalRecord:
+
+class VitalSigns(ContractModel):
+    spo2: float | None = Field(
+        default=None,
+        ge=0,
+        le=100,
+        validation_alias=AliasChoices("spo2", "SpO2", "oxygen_saturation"),
+    )
+    heart_rate: float | None = Field(
+        default=None,
+        gt=0,
+        validation_alias=AliasChoices("heart_rate", "HR"),
+    )
+    temperature_c: float | None = Field(
+        default=None,
+        gt=0,
+        validation_alias=AliasChoices("temperature_c", "temp"),
+    )
+    systolic_bp: float | None = Field(default=None, gt=0)
+    diastolic_bp: float | None = Field(default=None, gt=0)
+    respiratory_rate: float | None = Field(default=None, gt=0)
+
+
+class ClinicalRecord(ContractModel):
     record_id: str
     patient_id: str
     query: str
-    symptoms: list[Symptom] = field(default_factory=list)
-    vitals: dict[str, float | int | str] = field(default_factory=dict)
-    source: list[str] = field(default_factory=list)
+    symptoms: list[Symptom] = Field(default_factory=list)
+    vitals: VitalSigns = Field(default_factory=VitalSigns)
+    source: list[str] = Field(default_factory=list)
     visit_id: str | None = None
 
+    @field_validator("record_id", "patient_id", "query")
+    @classmethod
+    def validate_required_text(cls, value: str) -> str:
+        return _clean_required_text(value)
 
-@dataclass(frozen=True)
-class ClinicalLabel:
+
+class ClinicalLabel(ContractModel):
     label: str
     fact: str
     risk_concept: str | None
     rule: str
     evidence: dict[str, Any]
 
+    @field_validator("label", "fact", "rule")
+    @classmethod
+    def validate_required_text(cls, value: str) -> str:
+        return _clean_required_text(value)
 
-@dataclass(frozen=True)
-class KnowledgeDocument:
+
+class KnowledgeDocument(ContractModel):
     doc_id: str
     title: str
     condition: str
@@ -41,23 +86,35 @@ class KnowledgeDocument:
     labels: set[str]
     risk_concepts: set[str]
 
+    @field_validator("doc_id", "title", "condition", "text")
+    @classmethod
+    def validate_required_text(cls, value: str) -> str:
+        return _clean_required_text(value)
 
-@dataclass(frozen=True)
-class RetrievalResult:
-    rank: int
+
+class RetrievalResult(ContractModel):
+    rank: int = Field(ge=1)
     title: str
     condition: str
-    score: float
+    score: float = Field(ge=0)
     retrieval_sources: list[str]
     evidence: list[str]
     explanation: str
 
+    @field_validator("title", "condition", "explanation")
+    @classmethod
+    def validate_required_text(cls, value: str) -> str:
+        return _clean_required_text(value)
 
-@dataclass(frozen=True)
-class RetrievalBundle:
+
+class RetrievalBundle(ContractModel):
     record_id: str
     patient_id: str
     embedding_text: str
     labels: list[ClinicalLabel]
     results: list[RetrievalResult]
 
+    @field_validator("record_id", "patient_id", "embedding_text")
+    @classmethod
+    def validate_required_text(cls, value: str) -> str:
+        return _clean_required_text(value)
