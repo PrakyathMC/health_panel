@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import pytest
 
+from pulsepanel_rag.models import ClinicalRecord as RagClinicalRecord
 from pulsepanel_orchestrator.context import OrchestrationContext
 from pulsepanel_orchestrator.errors import ToolExecutionError, ValidationError
 from pulsepanel_orchestrator.models import (
@@ -48,6 +49,7 @@ class TestInputNormalizer:
         assert ctx.record is not None
         assert ctx.record.record_id == "R1"
         assert ctx.record.patient_id == "P1"
+        assert isinstance(ctx.record, RagClinicalRecord)
 
     def test_rejects_missing_record_id(self):
         tool = InputNormalizer()
@@ -59,6 +61,15 @@ class TestInputNormalizer:
         tool = InputNormalizer()
         ctx = OrchestrationContext(raw_input={"record_id": "R1", "query": "test"})
         with pytest.raises(ValidationError):
+            tool.run(ctx)
+
+    def test_rejects_invalid_vital_range(self):
+        tool = InputNormalizer()
+        ctx = OrchestrationContext(raw_input={
+            "record_id": "R1", "patient_id": "P1", "query": "test",
+            "vitals": {"SpO2": 140},
+        })
+        with pytest.raises(ValidationError, match="less than or equal to 100"):
             tool.run(ctx)
 
     def test_handles_vital_aliases(self):

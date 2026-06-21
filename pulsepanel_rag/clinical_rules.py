@@ -146,13 +146,13 @@ class ClinicalRuleEngine:
         if rule.name == "hypothermia_rule":
             return temperature_c is not None and temperature_c < 35.0
         if rule.name == "hypertension_rule":
-            return (
-                systolic_bp is not None
-                and diastolic_bp is not None
-                and (systolic_bp >= 140 or diastolic_bp >= 90)
+            return (systolic_bp is not None and systolic_bp >= 140) or (
+                diastolic_bp is not None and diastolic_bp >= 90
             )
         if rule.name == "hypotension_rule":
-            return systolic_bp is not None and systolic_bp < 90
+            return (systolic_bp is not None and systolic_bp < 90) or (
+                diastolic_bp is not None and diastolic_bp < 60
+            )
         if rule.name == "tachypnea_rule":
             return respiratory_rate is not None and respiratory_rate > 20
         return False
@@ -172,5 +172,3 @@ class ClinicalRuleEngine:
 
 def derive_clinical_labels(vitals: Mapping[str, Any] | VitalSigns) -> list[ClinicalLabel]:
     return ClinicalRuleEngine().derive_labels(vitals)
-
-    return labels

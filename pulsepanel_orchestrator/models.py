@@ -1,58 +1,13 @@
-"""Core data models shared across the orchestration layer.
+"""Data models shared across the orchestration layer.
 
-These models define the contracts between tools. They mirror the Pydantic
-models in pulsepanel_rag/models.py for seamless integration later.
+RAG input contracts come from :mod:`pulsepanel_rag.models`, which is the
+single validation boundary for both standalone and orchestrated use.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
-
-
-@dataclass(frozen=True)
-class Symptom:
-    """A single symptom reported by a patient."""
-
-    name: str
-    severity: str | None = None
-    duration: str | None = None
-
-
-@dataclass(frozen=True)
-class VitalSigns:
-    """Canonical vital signs with standardised keys."""
-
-    spo2: float | None = None
-    heart_rate: float | None = None
-    temperature_c: float | None = None
-    systolic_bp: float | None = None
-    diastolic_bp: float | None = None
-    respiratory_rate: float | None = None
-
-
-@dataclass(frozen=True)
-class ClinicalRecord:
-    """A normalised clinical encounter record."""
-
-    record_id: str
-    patient_id: str
-    query: str
-    symptoms: list[Symptom] = field(default_factory=list)
-    vitals: VitalSigns | None = None
-    source: list[str] = field(default_factory=list)
-    visit_id: str | None = None
-
-
-@dataclass(frozen=True)
-class ClinicalLabel:
-    """A deterministic label derived from clinical rules."""
-
-    label: str
-    fact: str
-    risk_concept: str
-    rule: str
-    evidence: dict[str, Any] = field(default_factory=dict)
+from pulsepanel_rag.models import ClinicalLabel, ClinicalRecord, Symptom, VitalSigns
 
 
 @dataclass(frozen=True)
