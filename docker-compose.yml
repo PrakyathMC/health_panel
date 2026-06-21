@@ -1,0 +1,108 @@
+version: "3.8"
+
+services:
+  # ============================================================
+  # PostgreSQL - Structured Clinical Data Store
+  # ============================================================
+  postgres:
+    image: postgres:17
+    container_name: pulsepanel-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pulsepanel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pulsepanel_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-pulsepanel}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pulsepanel} -d ${POSTGRES_DB:-pulsepanel}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - pulsepanel-net
+
+  # ============================================================
+  # Qdrant - Vector Database for Semantic Search
+  # ============================================================
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: pulsepanel-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"   # REST API + Dashboard
+      - "6334:6334"   # gRPC (optional)
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__HOST: "0.0.0.0"
+      QDRANT__SERVICE__GRPC_PORT: ${QDRANT_GRPC_PORT:-6334}
+      QDRANT__SERVICE__HTTP_PORT: ${QDRANT_HTTP_PORT:-6333}
+      QDRANT__LOG__LEVEL: ${QDRANT_LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:6333/healthz || curl -sf http://localhost:6333/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - pulsepanel-net
+
+  # ============================================================
+  # Neo4j - Graph Database for Clinical Relationships
+  # ============================================================
+  neo4j:
+    image: neo4j:latest
+    container_name: pulsepanel-neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474"   # HTTP / Neo4j Browser UI
+      - "7687:7687"   # Bolt Protocol
+    environment:
+      NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/pulsepanel_graph}
+      NEO4J_PLUGINS: '["apoc", "graph-data-science"]'
+      NEO4J_dbms_memory_heap_max__size: ${NEO4J_HEAP_SIZE:-2G}
+      NEO4J_dbms_memory_pagecache_size: ${NEO4J_PAGE_CACHE:-1G}
+      NEO4J_dbms_security_procedures_unrestricted: "apoc.*,gds.*"
+      NEO4J_dbms_security_procedures_allowlist: "apoc.*,gds.*"
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/import
+      - neo4j_plugins:/plugins
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p pulsepanel_graph 'RETURN 1' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+    networks:
+      - pulsepanel-net
+
+# ============================================================
+# Volumes
+# ============================================================
+volumes:
+  postgres_data:
+    driver: local
+  qdrant_data:
+    driver: local
+  neo4j_data:
+    driver: local
+  neo4j_logs:
+    driver: local
+  neo4j_import:
+    driver: local
+  neo4j_plugins:
+    driver: local
+
+# ============================================================
+# Networks
+# ============================================================
+networks:
+  pulsepanel-net:
+    driver: bridge
