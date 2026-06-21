@@ -68,8 +68,10 @@ case "${1:-up}" in
         curl -sf http://localhost:6333/healthz 2>/dev/null && echo "  Connected ✓" || echo "  Not connected"
         echo ""
         echo "=== Neo4j ==="
+        # Try PULSEPANEL_NEO4J_PASSWORD first, fall back to NEO4J_PASSWORD
         local neo4j_pass
-neo4j_pass="$(grep NEO4J_PASSWORD "$ENV_FILE" 2>/dev/null | cut -d= -f2)"
+neo4j_pass="$(grep PULSEPANEL_NEO4J_PASSWORD "$ENV_FILE" 2>/dev/null | cut -d= -f2)"
+neo4j_pass="${neo4j_pass:-$(grep NEO4J_PASSWORD "$ENV_FILE" 2>/dev/null | cut -d= -f2)}"
 neo4j_pass="${neo4j_pass:-pulsepanel_graph}"
 docker compose --env-file "$ENV_FILE" exec neo4j cypher-shell -u neo4j -p "$neo4j_pass" "RETURN 1 AS health" 2>/dev/null || echo "  Not connected"
         ;;

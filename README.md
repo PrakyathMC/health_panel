@@ -100,7 +100,32 @@ Pre-seeded with 7 clinical rules (hypoxia, tachycardia, fever, hypertension, etc
 
 ---
 
-## 🧪 Verifying the Setup
+## 🐍 Python Setup (Orchestration Layer)
+
+The PulsePanel orchestrator runs on Python 3.12+. Use the virtual environment:
+
+```bash
+# Activate the virtual environment
+source .venv/bin/activate
+
+# Install dependencies (if setting up from scratch)
+pip install -r requirements.txt
+
+# Run the analysis via CLI
+python -m pulsepanel_orchestrator.cli --json '{"record_id":"test","patient_id":"P001","query":"Chest pain","symptoms":["Chest pain"],"vitals":{"SpO2":90,"HR":110}}'
+
+# Or start the API server
+uvicorn pulsepanel_orchestrator.api:app --host 127.0.0.1 --port 8989
+
+# Run tests
+pytest pulsepanel_orchestrator/tests/ -v
+```
+
+> **Note:** The `.env` file is automatically loaded by `python-dotenv`. Copy `.env.example` to `.env` and add your `OPENAI_API_KEY` before using the Qdrant vector store.
+
+---
+
+## 🧪 Verifying the Database Setup
 
 ```bash
 # Check all containers are running
@@ -125,11 +150,23 @@ health_panel/
 ├── docker/
 │   └── postgres/
 │       └── init.sql          # PostgreSQL schema + seed data
+├── pulsepanel_orchestrator/      # Python orchestration layer
+│   ├── orchestrator.py            # Central pipeline coordinator
+│   ├── api.py                     # FastAPI server
+│   ├── cli.py                     # CLI entry point
+│   ├── tools/                     # RAG pipeline tools
+│   ├── config/                    # Settings & rules
+│   └── tests/                     # 40+ tests
 ├── docs/
-│   └── Pulsepanel_clinical_graphrag_architecture.md
+│   ├── Pulsepanel_clinical_graphrag_architecture.md
+│   ├── pulsepanel_orchestration_layer.md
+│   ├── pulsepanel_end_to_end_architecture.md
+│   └── pulsepanel_integration_plan.md
 ├── scripts/
-│   └── start-dbs.sh          # Helper script (handles sudo)
-├── docker-compose.yml        # All 3 database services
-├── .env.example              # Environment variable template
+│   └── start-dbs.sh               # Helper script (handles sudo)
+├── docker-compose.yml             # All 3 database services
+├── requirements.txt               # Python dependencies
+├── .gitignore                     # Git ignore rules
+├── .env.example                   # Environment variable template
 └── README.md
 ```

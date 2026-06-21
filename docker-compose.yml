@@ -44,7 +44,7 @@ services:
       QDRANT__SERVICE__HTTP_PORT: ${QDRANT_HTTP_PORT:-6333}
       QDRANT__LOG__LEVEL: ${QDRANT_LOG_LEVEL:-INFO}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:6333/healthz || curl -sf http://localhost:6333/healthz"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -64,7 +64,6 @@ services:
       - "7687:7687"   # Bolt Protocol
     environment:
       NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/pulsepanel_graph}
-      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-pulsepanel_graph}
       NEO4J_PLUGINS: '["apoc", "graph-data-science"]'
       NEO4J_dbms_memory_heap_max__size: ${NEO4J_HEAP_SIZE:-2G}
       NEO4J_dbms_memory_pagecache_size: ${NEO4J_PAGE_CACHE:-1G}
@@ -76,7 +75,7 @@ services:
       - neo4j_import:/import
       - neo4j_plugins:/plugins
     healthcheck:
-      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "${NEO4J_PASSWORD}", "RETURN 1"]
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p pulsepanel_graph 'RETURN 1' || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5

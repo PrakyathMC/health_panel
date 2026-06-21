@@ -666,7 +666,7 @@ CREATE TABLE knowledge_documents (
     keywords        TEXT[],
     labels          TEXT[],
     risk_concepts   TEXT[],
-    embedding       VECTOR(384),      -- if pgvector is enabled
+    embedding       VECTOR(3072),     -- if pgvector is enabled (text-embedding-3-large)
     created_at      TIMESTAMPTZ DEFAULT NOW(),
     updated_at      TIMESTAMPTZ DEFAULT NOW()
 );

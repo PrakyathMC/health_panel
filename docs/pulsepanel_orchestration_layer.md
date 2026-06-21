@@ -214,7 +214,7 @@ Input:  Embedding text + operation (ingest/search/delete)
 Output: Query results or ingestion confirmation
 
 Responsibilities:
-- Generate embeddings via sentence-transformers
+- Generate embeddings via OpenAI text-embedding-3-large API
 - Ingest embedding text + metadata into Qdrant collection
 - Search by embedding vector
 - Filter by metadata (patient_id, visit_id)
@@ -518,9 +518,16 @@ health_panel/
 │
 ├── docs/
 │   ├── Pulsepanel_clinical_graphrag_architecture.md
-│   └── pulsepanel_orchestration_layer.md  ← THIS DOCUMENT
+│   ├── pulsepanel_orchestration_layer.md  ← THIS DOCUMENT
+│   ├── pulsepanel_end_to_end_architecture.md
+│   └── pulsepanel_integration_plan.md
 │
+├── scripts/
+│   └── start-dbs.sh               # Database helper script
 ├── docker-compose.yml               # PostgreSQL, Qdrant, Neo4j
+├── requirements.txt                 # Python dependencies
+├── .gitignore                       # Git ignore rules
+├── .env.example                     # Environment variable template
 └── README.md
 ```
 

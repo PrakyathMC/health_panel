@@ -99,7 +99,7 @@ Using adapters internally:
 #### Qdrant (Vector Store)
 | What Gets Stored | Content |
 |---|---|
-| **Vector embedding** | 384-dim vector from sentence-transformers |
+| **Vector embedding** | 3072-dim vector from OpenAI text-embedding-3-large |
 | **Point payload** | `record_id`, `patient_id`, `embedding_text`, `labels[]`, `risk_concepts[]` |
 
 #### Neo4j (Graph Store)
@@ -266,7 +266,7 @@ Each step is **optional and configurable**. If a DB is down, dependent tools are
 
 | Collection Name | Payload Fields | Vector Dim |
 |---|---|---|
-| `clinical_knowledge` | record_id, patient_id, embedding_text, labels[], risk_concepts[] | 384 |
+| `clinical_knowledge` | record_id, patient_id, embedding_text, labels[], risk_concepts[] | 3072 |
 
 ### Neo4j Nodes & Relationships
 
@@ -545,7 +545,9 @@ health_panel/
 │   └── start-dbs.sh
 │
 ├── docker-compose.yml
-├── .env.example
+├── requirements.txt            # Python dependencies
+├── .gitignore                  # Git ignore rules
+├── .env.example                # Environment variable template
 └── README.md
 ```
 
