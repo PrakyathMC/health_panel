@@ -84,6 +84,12 @@ Run orchestrator tests:
 pytest pulsepanel_orchestrator/tests/ -v
 ```
 
+Seed Qdrant with clinical knowledge embeddings:
+
+```bash
+python scripts/seed_qdrant.py --smoke-query "chest pain and low oxygen"
+```
+
 Run the standalone RAG prototype:
 
 ```bash
