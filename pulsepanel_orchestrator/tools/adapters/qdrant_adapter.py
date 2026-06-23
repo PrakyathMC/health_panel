@@ -46,7 +46,10 @@ class QdrantAdapter(BaseAdapter):
         from qdrant_client.http.exceptions import UnexpectedResponse
 
         try:
-            self._client = QdrantClient(url=self._url, timeout=10)
+            if self._url == ":memory:":
+                self._client = QdrantClient(":memory:")
+            else:
+                self._client = QdrantClient(url=self._url, timeout=10)
             # Ping to verify connection
             self._client.get_collections()
             self._connected = True
@@ -210,9 +213,9 @@ class QdrantAdapter(BaseAdapter):
         query_vector = self.encode(query_text)
 
         try:
-            results = self._client.search(
+            response = self._client.query_points(
                 collection_name=self._collection_name,
-                query_vector=query_vector,
+                query=query_vector,
                 limit=top_k,
                 with_payload=True,
             )
@@ -223,6 +226,7 @@ class QdrantAdapter(BaseAdapter):
                 service="qdrant",
             ) from exc
 
+        results = getattr(response, "points", response)
         return [
             {
                 "doc_id": r.payload.get("doc_id", ""),

@@ -86,6 +86,10 @@ class Settings:
     keyword_weight: float = float(os.getenv("PULSEPANEL_KEYWORD_WEIGHT", "0.25"))
     symbolic_weight: float = float(os.getenv("PULSEPANEL_SYMBOLIC_WEIGHT", "0.35"))
     graph_weight: float = float(os.getenv("PULSEPANEL_GRAPH_WEIGHT", "0.15"))
+    enable_qdrant_semantic: bool = (
+        os.getenv("PULSEPANEL_ENABLE_QDRANT_SEMANTIC", "false").lower()
+        in ("true", "1", "yes")
+    )
 
     # --- Pipeline ---
     tool_timeout_seconds: float = float(

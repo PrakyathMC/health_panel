@@ -28,6 +28,7 @@ from pulsepanel_orchestrator.tools import (
     SemanticRetriever,
     SymbolicRetriever,
 )
+from pulsepanel_orchestrator.tools.adapters import QdrantAdapter
 
 
 # ======================================================================
@@ -179,6 +180,96 @@ class TestSemanticRetriever:
         ctx = tool.run(ctx)
         assert len(ctx.semantic_results) > 0
         assert ctx.semantic_results[0].score > 0
+
+    def test_uses_vector_store_adapter_when_enabled(self):
+        class FakeVectorAdapter:
+            def __init__(self):
+                self.connected = False
+                self.collection_ready = False
+                self.ingested_count = 0
+                self.search_query = ""
+
+            def connect(self):
+                self.connected = True
+
+            def ensure_collection(self):
+                self.collection_ready = True
+
+            def ingest_documents(self, documents):
+                self.ingested_count = len(documents)
+
+            def search(self, query_text, top_k=10):
+                self.search_query = query_text
+                return [
+                    {
+                        "doc_id": "doc-cardiac-risk",
+                        "title": "Cardiac Risk Triage",
+                        "condition": "cardiac_risk",
+                        "score": 0.91,
+                        "payload": {},
+                    }
+                ][:top_k]
+
+        adapter = FakeVectorAdapter()
+        tool = SemanticRetriever(
+            vector_adapter=adapter,
+            use_vector_store=True,
+            top_k=3,
+        )
+        ctx = OrchestrationContext(raw_input={})
+        ctx.record = ClinicalRecord(record_id="R1", patient_id="P1", query="chest pain")
+        ctx.embedding_text = "Patient has severe chest pain and shortness of breath"
+
+        ctx = tool.run(ctx)
+
+        assert adapter.connected
+        assert adapter.collection_ready
+        assert adapter.ingested_count > 0
+        assert adapter.search_query == ctx.embedding_text
+        assert len(ctx.semantic_results) == 1
+        assert ctx.semantic_results[0].retrieval_sources == ["semantic", "qdrant"]
+        assert ctx.semantic_results[0].evidence[0]["doc_id"] == "doc-cardiac-risk"
+
+    def test_qdrant_adapter_search_uses_query_points(self):
+        class FakePoint:
+            score = 0.87
+            payload = {
+                "doc_id": "doc-hypoxia",
+                "title": "Hypoxia Protocol",
+                "condition": "hypoxia",
+            }
+
+        class FakeResponse:
+            points = [FakePoint()]
+
+        class FakeClient:
+            def __init__(self):
+                self.query = None
+                self.limit = None
+
+            def query_points(
+                self,
+                collection_name,
+                query,
+                limit,
+                with_payload,
+            ):
+                self.query = query
+                self.limit = limit
+                return FakeResponse()
+
+        adapter = QdrantAdapter(collection_name="test_collection")
+        fake_client = FakeClient()
+        adapter._connected = True
+        adapter._client = fake_client
+        adapter.encode = lambda text: [0.1, 0.2, 0.3]
+
+        results = adapter.search("hypoxic patient", top_k=5)
+
+        assert fake_client.query == [0.1, 0.2, 0.3]
+        assert fake_client.limit == 5
+        assert results[0]["doc_id"] == "doc-hypoxia"
+        assert results[0]["score"] == 0.87
 
 
 class TestKeywordRetriever:
