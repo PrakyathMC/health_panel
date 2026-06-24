@@ -41,15 +41,33 @@ button {
     display: grid;
     grid-template-columns: 260px minmax(0, 1fr);
     min-height: 100vh;
+    transition: grid-template-columns 0.2s ease;
+}
+
+.app-shell.sidebar-collapsed {
+    grid-template-columns: 84px minmax(0, 1fr);
 }
 
 .sidebar {
     position: sticky;
     top: 0;
+    display: flex;
+    flex-direction: column;
     height: 100vh;
     padding: 1.25rem;
     background: #10232d;
     color: #e8f6f3;
+}
+
+.sidebar-toggle {
+    align-self: flex-end;
+    width: 36px;
+    min-height: 36px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 800;
 }
 
 .brand {
@@ -59,6 +77,11 @@ button {
     min-height: 44px;
     font-size: 1.1rem;
     font-weight: 800;
+}
+
+.brand-name {
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .brand-mark {
@@ -78,6 +101,9 @@ button {
 }
 
 .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     width: 100%;
     min-height: 44px;
     border-radius: 8px;
@@ -89,6 +115,13 @@ button {
     transition: background 0.18s ease, color 0.18s ease;
 }
 
+.nav-short {
+    display: none;
+    width: 24px;
+    text-align: center;
+    font-weight: 900;
+}
+
 .nav-item:hover,
 .nav-item.active {
     background: rgba(45, 212, 191, 0.14);
@@ -98,6 +131,20 @@ button {
 .main {
     min-width: 0;
     padding: 1.5rem;
+}
+
+.sidebar-collapsed .brand-name,
+.sidebar-collapsed .nav-label {
+    display: none;
+}
+
+.sidebar-collapsed .nav-item {
+    justify-content: center;
+    padding: 0;
+}
+
+.sidebar-collapsed .nav-short {
+    display: inline-block;
 }
 
 .topbar {
@@ -148,6 +195,33 @@ button {
     font-size: 0.9rem;
     font-weight: 700;
     box-shadow: 0 10px 24px rgba(18, 32, 47, 0.08);
+}
+
+.status-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    border-radius: 999px;
+    padding: 0 0.85rem;
+    background: #eef6f8;
+    color: #18303c;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.status-ready {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-loading {
+    background: #e0f2fe;
+    color: #075985;
+}
+
+.status-error {
+    background: #fee2e2;
+    color: #991b1b;
 }
 
 .status-dot {
@@ -237,6 +311,10 @@ button {
 
 .workspace-grid {
     grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+}
+
+.workspace-grid.workspace-single {
+    grid-template-columns: 1fr;
 }
 
 .panel,
@@ -470,12 +548,19 @@ textarea:focus-visible {
     gap: 1rem;
 }
 
+.analysis-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
 .details-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .details-form label,
-.settings-list label {
+.settings-list label,
+.analysis-form label {
     display: grid;
     gap: 0.45rem;
     color: #28444d;
@@ -497,6 +582,78 @@ textarea:focus-visible {
     align-items: center;
     flex-wrap: wrap;
     gap: 0.75rem;
+}
+
+.analysis-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.analysis-meta > div,
+.result-card {
+    border: 1px solid #e1ebef;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 0.9rem;
+}
+
+.analysis-meta span,
+.result-card span,
+.result-card small {
+    display: block;
+    color: #60717d;
+}
+
+.analysis-meta strong {
+    display: block;
+    margin-top: 0.3rem;
+    color: #10232d;
+    overflow-wrap: anywhere;
+}
+
+.result-group + .result-group {
+    margin-top: 1rem;
+}
+
+.result-group h3 {
+    margin: 0 0 0.75rem;
+    color: #10232d;
+    font-size: 1rem;
+}
+
+.result-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.result-card {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.result-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.result-card p,
+.result-card small {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.error-list {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: #b42318;
+}
+
+.empty-state.compact {
+    margin-top: 0;
 }
 
 .record-grid {
@@ -538,10 +695,18 @@ textarea:focus-visible {
         grid-template-columns: 1fr;
     }
 
+    .app-shell.sidebar-collapsed {
+        grid-template-columns: 1fr;
+    }
+
     .sidebar {
         position: static;
         height: auto;
         padding: 1rem;
+    }
+
+    .sidebar-toggle {
+        align-self: flex-start;
     }
 
     .nav-list {
@@ -595,7 +760,12 @@ textarea:focus-visible {
     }
 
     .details-form,
+    .analysis-form,
     .record-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .analysis-meta {
         grid-template-columns: 1fr;
     }
 }
