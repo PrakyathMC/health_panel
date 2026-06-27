@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 # Resolves the path relative to this file so it works regardless
 # of the current working directory.
 _project_root = Path(__file__).resolve().parent.parent.parent
-load_dotenv(_project_root / ".env")
+load_dotenv(_project_root / ".env", override=True)
 
 
 @dataclass
@@ -47,6 +47,9 @@ class Settings:
             "PULSEPANEL_QDRANT_URL",
             "http://localhost:6333",
         )
+    )
+    qdrant_api_key: str = field(
+        default_factory=lambda: os.getenv("PULSEPANEL_QDRANT_API_KEY", "")
     )
     qdrant_collection: str = field(
         default_factory=lambda: os.getenv(

@@ -25,12 +25,14 @@ class QdrantAdapter(BaseAdapter):
     def __init__(
         self,
         url: str | None = None,
+        api_key: str | None = None,
         collection_name: str | None = None,
         embedding_model: str | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self._url = url or self._settings.qdrant_url
+        self._api_key = api_key or self._settings.qdrant_api_key
         self._collection_name = collection_name or self._settings.qdrant_collection
         self._model_name = embedding_model or self._settings.embedding_model
         self._dimensions = self._settings.embedding_dimensions
@@ -48,6 +50,8 @@ class QdrantAdapter(BaseAdapter):
         try:
             if self._url == ":memory:":
                 self._client = QdrantClient(":memory:")
+            elif self._api_key:
+                self._client = QdrantClient(url=self._url, api_key=self._api_key, timeout=10)
             else:
                 self._client = QdrantClient(url=self._url, timeout=10)
             # Ping to verify connection
