@@ -23,3 +23,6 @@ build/
 venv
 .env.local
 .env.*.local
+tests/
+pulsepanel_orchestrator/tests/
+scripts/
