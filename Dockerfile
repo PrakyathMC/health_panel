@@ -18,5 +18,5 @@ COPY . .
 # Expose the API port
 EXPOSE 8989
 
-# Run the FastAPI app
-CMD ["uvicorn", "pulsepanel_orchestrator.api:app", "--host", "0.0.0.0", "--port", "8989"]
+# Run the FastAPI app. Railway injects PORT; local Docker can fall back to 8989.
+CMD ["sh", "-c", "uvicorn pulsepanel_orchestrator.api:app --host 0.0.0.0 --port ${PORT:-8989}"]
