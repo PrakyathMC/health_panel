@@ -14,14 +14,24 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from .config.settings import settings
 from .orchestrator import PulsePanelOrchestrator
 
 app = FastAPI(
     title="PulsePanel Clinical RAG API",
     description="Orchestrated clinical retrieval-augmented generation pipeline",
     version="0.1.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
 )
 
 # Global orchestrator instance

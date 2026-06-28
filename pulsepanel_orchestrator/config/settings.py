@@ -103,6 +103,17 @@ class Settings:
         "1",
         "yes",
     )
+    cors_origins: list[str] = field(
+        default_factory=lambda: [
+            origin.strip()
+            for origin in os.getenv(
+                "PULSEPANEL_CORS_ORIGINS",
+                "http://localhost:3000,http://localhost:5173,"
+                "http://127.0.0.1:3000,http://127.0.0.1:5173",
+            ).split(",")
+            if origin.strip()
+        ]
+    )
 
 
 # Global singleton
